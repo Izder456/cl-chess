@@ -26,7 +26,7 @@
     (dotimes (rank 8)
       (let ((is-light-square? (= 0 (rem (+ rank file) 2))))
         (apply #'gl:color (if is-light-square? *light-col* *dark-col*))
-        (draw-square (* file size) (* rank size) size (if is-light-square? *light-col* *dark-col*))))))
+        (draw-square file rank size (if is-light-square? *light-col* *dark-col*))))))
 
 (defun draw-window (window-size)
   "Function to draw the window"
