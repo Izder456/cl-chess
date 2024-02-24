@@ -28,38 +28,50 @@
         (apply #'gl:color (if is-light-square? *light-col* *dark-col*))
         (draw-square file rank size (if is-light-square? *light-col* *dark-col*))))))
 
-(defun draw-window (window-size)
+(defun setup-frustum-projection (width height near far)
+  "Some Yucky Math Here"
+  ;; bind relevant to the tangent of half of the field of view
+  (let* ((aspect-ratio (/ width height))
+	 (tan-half-fov (tan (/ 45.0 2.0))) ;; 45 Degree FOV
+	 (left (- (* near tan-half-fov)))
+	 (right (* near tan-half-fov))
+	 (bottom (- (* near tan-half-fov (/ aspect-ratio))))
+	 (top (* near tan-half-fov (/ aspect-ratio))))
+    ;; setup ogl frustum
+    (gl:matrix-mode :projection)
+    (gl:load-identity)
+    (gl:frustum left right bottom top near far)
+    (gl:matrix-mode :modelview)
+    (gl:load-identity)))
+
+(defun init-sdl2-and-gl (width height)
+  "Initialize SDL2 and GL"
+  ;; start sdl with video subsystem
+  (sdl2:init :video)
+
+  ;; create window with ogl support
+  (let ((window (sdl2:create-window :title "Chess Board"
+				    :w width :h height
+				    :flags '(:shown :opengl))))
+    ;; create ogl contest
+    (sdl2:gl-create-context window)
+    ;; return the window
+    window))
+
+(defun draw-window (window-width window-height)
   "Function to draw the window"
-  (sdl2:with-init (:video)
-    (let* ((window (sdl2:create-window :title "Chess Board" :w window-size :h window-size))
-           (renderer (sdl2:create-renderer window)))
-
-      ;; Set the OpenGL viewport
-      (gl:viewport 0 0 window-size window-size)
-
-      ;; Set the projection matrix
-      (gl:matrix-mode :projection)
-      (gl:load-identity)
-      (gl:ortho 0 8 0 8 -1 1)
-
-      ;; Main loop
-      (sdl2:with-event-loop (:method :poll)
-        (:idle ()
-          (gl:clear :color-buffer) ; Clear the color buffer
-          (gl:matrix-mode :modelview) ; Switch to modelview matrix mode
-          (gl:load-identity) ; Reset the current matrix
-
-          (create-graphical-board 1) ; Pass 1 as the size since the viewport handles scaling
-
-          (gl:flush) ; Ensure all commands are executed
-
-          (sdl2:gl-swap-window window) ; Swap the front and back buffers
-          (sdl2:delay 1000))
-
-        (:quit ()
-          (sdl2:destroy-renderer renderer)
-          (sdl2:destroy-window window)
-          t))))) ;; Return t to indicate a successful event handle.
+  (let ((window (init-sdl2-and-gl window-width window-height)))
+    (setup-frustum-projection window-width window-height 0.1 100)
+    ;; Main loop
+    (sdl2:with-event-loop (:method :poll)
+      (:quit () t) ;; Return t to indicate a successful event handle.
+      (:idle ()
+        (gl:clear :color-buffer-bit) ; Clear the color buffer
+        (create-graphical-board 1) ; Pass 1 as the size since the viewport handles scaling
+        (sdl2:gl-swap-window window) ; Swap the front and back buffers
+        (sdl2:delay 1000)))
+      (sdl2:destroy-window window)
+      (sdl2:quit)))
 
 ;; Open the window with size
-;; (draw-window 480)
+;; (draw-window 800 600)
