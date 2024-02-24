@@ -1,5 +1,5 @@
 # cl-chess
-### _izzy Meyer <izder456 ! example (dot) com>_
+### _izzy Meyer <izder456 ! disroot (dot) org>_
 
 I dont know what im doing, but heres a crappy attempt at a 3d accelerated chess game in common lisp
 
