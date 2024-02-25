@@ -48,15 +48,18 @@
   "Initialize SDL2 and GL"
   ;; start sdl with video subsystem
   (sdl2:init :video)
-
+  
   ;; create window with ogl support
   (let ((window (sdl2:create-window :title "Chess Board"
 				    :w width :h height
 				    :flags '(:shown :opengl))))
-    ;; create ogl contest
+    ;; ensure main thread
+    (sdl2:make-this-thread-main)
+    ;; create ogl context
     (sdl2:gl-create-context window)
     ;; return the window
     window))
+
 
 (defun draw-window (window-width window-height)
   "Function to draw the window"
